@@ -1,0 +1,42 @@
+---
+title: "rv_garch_spx_hsi"
+output: html_document
+---
+
+```{r}
+library(xlsx)
+library(fGarch)
+library(forecast)
+hsi_rv <- read.xlsx("C:/Cathy suns application/swsresearch/spx_hsi_impv_rv.xlsx",2,header=FALSE)
+spx_rv <- read.xlsx("C:/Cathy suns application/swsresearch/spx_hsi_impv_rv.xlsx",3,header=FALSE)
+```
+```{r}
+hr1 = hsi_rv[-1,2]
+hr3 = hsi_rv[-1,3]
+sr1 = spx_rv[-1,2]
+sr3 = spx_rv[-1,3]
+
+ar = auto.arima(hr1)
+```
+
+
+```{r}
+r = sr1
+window = 29
+fstep = 10
+pred = numeric(length(r))
+for (i in 1:((length(r)-window)/10)){
+rvtrain = r[(i*10-9):((i+2)*10)]
+f = garchFit(~arma(0,1,0)+garch(1, 1),data=rvtrain, cond.dist="norm")
+pred[((i+2)*10+1):((i+3)*10)] = predict(f,n.ahead = fstep)[[1]]
+}
+pre = unlist(pred)
+pre[1:30] = r[1:30]
+plot(pre,type = "l")
+plot(r,type = "l")
+```
+
+```{r}
+write.xlsx(pre,"C:/Cathy suns application/swsresearch/srp.xlsx",sheetName = "p1")
+```
+
