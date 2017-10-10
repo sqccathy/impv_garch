@@ -1,0 +1,47 @@
+---
+title: "rv_garch"
+output: html_document
+---
+
+```{r}
+library(xlsx)
+library(fGarch)
+library(forecast)
+rv <- read.xlsx("C:/Cathy suns application/swsresearch/RV&GARCH.xlsx",1,header=FALSE)
+iv = rv[3:609,2]
+r = rv[3:609,3]
+r = as.numeric(paste(r))
+r = r[!is.na(r)]
+ar = auto.arima(r)
+```
+
+```{r}
+library(xlsx)
+library(fGarch)
+library(forecast)
+rv <- read.xlsx("C:/Cathy suns application/swsresearch/garch_m.xlsx",1,header=FALSE)
+r = rv[[1]]
+r = as.numeric(paste(r))
+r = r[!is.na(r)]
+ar = auto.arima(r)
+```
+
+```{r}
+window = 29
+fstep = 10
+pred = numeric(length(r))
+for (i in 1:((length(r)-window)/10)){
+rvtrain = r[(i*10-9):((i+2)*10)]
+f = garchFit(~arma(0,1,0)+garch(1, 1),data=rvtrain, cond.dist="norm")
+pred[((i+2)*10+1):((i+3)*10)] = predict(f,n.ahead = fstep)[[1]]
+}
+pre = unlist(pred)
+pre[1:30] = r[1:30]
+plot(pre,type = "l")
+plot(r,type = "l")
+```
+
+```{r}
+write.xlsx(pre,"C:/Cathy suns application/swsresearch/RV3g.xlsx",sheetName = "Sheet1")
+```
+
